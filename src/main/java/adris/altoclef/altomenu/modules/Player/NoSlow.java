@@ -20,8 +20,6 @@ public class NoSlow extends Mod {
         super("NoSlow", "RAWHHHH", Category.MOVEMENT);
         addSettings(items, sneaking, webs);
     }
-    private int ticks = 0;
-
     public static boolean doesBoxTouchBlock(Box box, Block block) {
         for (int x = (int) Math.floor(box.minX); x < Math.ceil(box.maxX); x++) {
             for (int y = (int) Math.floor(box.minY); y < Math.ceil(box.maxY); y++) {
@@ -37,7 +35,6 @@ public class NoSlow extends Mod {
 
     @Override
     public void onDisable() {
-        ticks = 0;
         super.onDisable();
     }
 
@@ -45,7 +42,6 @@ public class NoSlow extends Mod {
 
     @Override
     public void onEnable() {
-        ticks = 0;
         super.onEnable();
     }
 

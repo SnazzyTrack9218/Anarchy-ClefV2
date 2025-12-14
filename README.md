@@ -53,7 +53,7 @@ You can join most servers using these:
 
 
 ## Goals for this Fork
-- Survive in the Anarchy Enviroment without any User Input
+- Survive in the Anarchy Enviroment without any User Input (autoplay runs by default and can be toggled with `$autoplay`)
 - Dynamic Awareness System
 - Ability to Crystal PvP with Legit and Anarchy Modes
 - Server Version Based Task System
@@ -68,6 +68,10 @@ You can join most servers using these:
 - Improved Water PathFinding
 - Improved Combat
 - Support for as many AntiCheats as possible
+
+## New Commands
+- `$autoplay [on|off]` — Toggle the autonomous survival loop that gears up, gathers food, and keeps running after death or reconnects.
+- `$hunt <player>` — Pathfind to a player by name and stop with `$hunt stop`.
 
 
 # Common Issues:

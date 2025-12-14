@@ -2,7 +2,6 @@ package adris.altoclef.mixins;
 
 import adris.altoclef.AltoClef;
 import adris.altoclef.altomenu.UI.screens.clickgui.ClickGUI;
-import adris.altoclef.altomenu.UI.screens.clickgui.Frame;
 import net.minecraft.client.Keyboard;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
