@@ -5,6 +5,7 @@ import adris.altoclef.altomenu.command.HUDSettings;
 import adris.altoclef.altomenu.config.ConfigManager;
 import adris.altoclef.butler.Butler;
 import adris.altoclef.chains.*;
+import adris.altoclef.tasks.Anarchy.AutoPlayTask;
 import adris.altoclef.altomenu.*;
 import adris.altoclef.altomenu.UI.screens.clickgui.ClickGUI;
 import adris.altoclef.altomenu.managers.ModuleManager;
@@ -94,6 +95,10 @@ public class AltoClef implements ModInitializer {
     private SlotHandler _slotHandler;
     // Butler
     private Butler _butler;
+
+    // Autoplay
+    private boolean _autoPlayEnabled = true;
+    private AutoPlayTask _autoPlayTask;
     
     // Lua Scripting System  
     private volatile LuaScriptEngine _scriptEngine;
@@ -381,6 +386,8 @@ public class AltoClef implements ModInitializer {
 
         runEnqueuedPostInits();
 
+        ensureAutoPlayRunning();
+
         _inputControls.onTickPre();
 
         // Cancel shortcut
@@ -415,6 +422,21 @@ public class AltoClef implements ModInitializer {
         }
 
         _inputControls.onTickPost();
+    }
+
+    private void ensureAutoPlayRunning() {
+        if (!_autoPlayEnabled || !inGame()) return;
+
+        if (_autoPlayTask == null) {
+            _autoPlayTask = new AutoPlayTask();
+        }
+
+        Task current = _userTaskChain.getCurrentTask();
+        if (_userTaskChain.isActive() && current instanceof AutoPlayTask) return;
+
+        if (!_userTaskChain.isActive()) {
+            runUserTask(_autoPlayTask);
+        }
     }
 
     /// GETTERS AND SETTERS
@@ -653,6 +675,30 @@ public class AltoClef implements ModInitializer {
      */
     public void runUserTask(Task task, Runnable onFinish) {
         _userTaskChain.runTask(this, task, onFinish);
+    }
+
+    public void enableAutoPlay() {
+        _autoPlayEnabled = true;
+        ensureAutoPlayRunning();
+    }
+
+    public void disableAutoPlay() {
+        _autoPlayEnabled = false;
+        if (_userTaskChain.getCurrentTask() instanceof AutoPlayTask) {
+            _userTaskChain.cancel(this);
+        }
+    }
+
+    public void toggleAutoPlay() {
+        if (_autoPlayEnabled) {
+            disableAutoPlay();
+        } else {
+            enableAutoPlay();
+        }
+    }
+
+    public boolean isAutoPlayEnabled() {
+        return _autoPlayEnabled;
     }
 
     /**

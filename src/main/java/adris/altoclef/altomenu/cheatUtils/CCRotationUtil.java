@@ -1,6 +1,5 @@
 package adris.altoclef.altomenu.cheatUtils;
 
-import adris.altoclef.AltoClef;
 import adris.altoclef.eventbus.EventBus;
 import adris.altoclef.eventbus.EventHandler;
 import adris.altoclef.eventbus.events.SendMovementPacketsEvent;

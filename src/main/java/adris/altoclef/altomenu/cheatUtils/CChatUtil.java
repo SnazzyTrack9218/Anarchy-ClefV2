@@ -1,7 +1,6 @@
 package adris.altoclef.altomenu.cheatUtils;
 
 
-import adris.altoclef.AltoClef;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
