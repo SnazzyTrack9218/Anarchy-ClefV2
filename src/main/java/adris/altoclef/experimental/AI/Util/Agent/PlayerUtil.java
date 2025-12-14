@@ -1,10 +1,10 @@
 package adris.altoclef.experimental.AI.Util.Agent;
 
 import adris.altoclef.util.Dimension;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
-
-import static baritone.api.utils.Helper.mc;
 
 public class PlayerUtil {
     public static double lastHealth = -0.1;
@@ -12,32 +12,44 @@ public class PlayerUtil {
     public static boolean isDead;
 
     public static void trackAgentHealth() {
-        mc.player.getHealth();
-        if (lastHealth == -0.1) lastHealth = mc.player.getHealth();
-        else if (mc.player.getHealth() != lastHealth) {
-            healthChanged = true;
-            lastHealth = mc.player.getHealth();
+        PlayerEntity player = player();
+        if (player == null) {
+            healthChanged = false;
+            return;
         }
-        else healthChanged = false;
+
+        float health = player.getHealth();
+        if (lastHealth == -0.1) lastHealth = health;
+        else if (health != lastHealth) {
+            healthChanged = true;
+            lastHealth = health;
+        } else healthChanged = false;
     }
 
     public static void isDead() {
-        if (mc.player.getHealth() == 0) isDead = true;
-        else isDead = false;
+        PlayerEntity player = player();
+        if (player == null) {
+            isDead = false;
+            return;
+        }
+        isDead = player.getHealth() == 0;
     }
 
     public static boolean isMoving() {
-        return mc.player.forwardSpeed != 0 || mc.player.sidewaysSpeed != 0;
+        PlayerEntity player = player();
+        return player != null && (player.forwardSpeed != 0 || player.sidewaysSpeed != 0);
     }
 
     public static boolean isSprinting() {
-        return mc.player.isSprinting() && (mc.player.forwardSpeed != 0 || mc.player.sidewaysSpeed != 0);
+        PlayerEntity player = player();
+        return player != null && player.isSprinting() && (player.forwardSpeed != 0 || player.sidewaysSpeed != 0);
     }
 
     public static Dimension getDimension() {
-        if (mc.world == null) return Dimension.OVERWORLD;
+        ClientWorld world = world();
+        if (world == null) return Dimension.OVERWORLD;
 
-        return switch (mc.world.getRegistryKey().getValue().getPath()) {
+        return switch (world.getRegistryKey().getValue().getPath()) {
             case "the_nether" -> Dimension.NETHER;
             case "the_end" -> Dimension.END;
             default -> Dimension.OVERWORLD;
@@ -47,15 +59,26 @@ public class PlayerUtil {
     ///////////////////////////// // *Crystal PvP Related* // ///////////////////////////////////////////////
     public static boolean isInHole(PlayerEntity p) {
         BlockPos pos = p.getBlockPos();
-        return !mc.world.getBlockState(pos.add(1, 0, 0)).isAir() && !mc.world.getBlockState(pos.add(-1, 0, 0)).isAir() && !mc.world.getBlockState(pos.add(0, 0, 1)).isAir() && !mc.world.getBlockState(pos.add(0, 0, -1)).isAir() && !mc.world.getBlockState(pos.add(0, -1, 0)).isAir();
+        ClientWorld world = world();
+        return world != null && !world.getBlockState(pos.add(1, 0, 0)).isAir() && !world.getBlockState(pos.add(-1, 0, 0)).isAir() && !world.getBlockState(pos.add(0, 0, 1)).isAir() && !world.getBlockState(pos.add(0, 0, -1)).isAir() && !world.getBlockState(pos.add(0, -1, 0)).isAir();
     }
 
     public static boolean isSurrounded(PlayerEntity target) {
-        return !mc.world.getBlockState(target.getBlockPos().add(1, 0, 0)).isAir() && !mc.world.getBlockState(target.getBlockPos().add(-1, 0, 0)).isAir() && !mc.world.getBlockState(target.getBlockPos().add(0, 0, 1)).isAir() && !mc.world.getBlockState(target.getBlockPos().add(0, 0, -1)).isAir();
+        ClientWorld world = world();
+        return world != null && !world.getBlockState(target.getBlockPos().add(1, 0, 0)).isAir() && !world.getBlockState(target.getBlockPos().add(-1, 0, 0)).isAir() && !world.getBlockState(target.getBlockPos().add(0, 0, 1)).isAir() && !world.getBlockState(target.getBlockPos().add(0, 0, -1)).isAir();
     }
 
     public static boolean isBurrowed(PlayerEntity target) {
-        return !mc.world.getBlockState(target.getBlockPos()).isAir();
+        ClientWorld world = world();
+        return world != null && !world.getBlockState(target.getBlockPos()).isAir();
     }
     /////////////////////////////////////////////////////////////////////////////////////////
+
+    private static PlayerEntity player() {
+        return MinecraftClient.getInstance().player;
+    }
+
+    private static ClientWorld world() {
+        return MinecraftClient.getInstance().world;
+    }
 }
