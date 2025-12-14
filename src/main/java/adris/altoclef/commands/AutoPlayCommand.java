@@ -10,7 +10,6 @@ public class AutoPlayCommand extends Command {
 
     public AutoPlayCommand() throws CommandException {
         super("autoplay", "Toggle persistent autoplay survival", new Arg<>(String.class, "mode", null, 0));
-        super("autoplay", "Toggle persistent autoplay survival", new Arg(String.class, "mode", null, 0));
     }
 
     @Override

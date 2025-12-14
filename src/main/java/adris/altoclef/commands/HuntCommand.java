@@ -11,7 +11,6 @@ public class HuntCommand extends Command {
 
     public HuntCommand() throws CommandException {
         super("hunt", "Hunt down a player by name", new Arg<>(String.class, "username", null, 0, false));
-        super("hunt", "Hunt down a player by name", new Arg(String.class, "username", null));
     }
 
     @Override

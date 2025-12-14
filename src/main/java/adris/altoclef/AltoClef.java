@@ -98,7 +98,6 @@ public class AltoClef implements ModInitializer {
 
     // Autoplay
     private boolean _autoPlayEnabled = true;
-    private boolean _autoPlayEnabled;
     private AutoPlayTask _autoPlayTask;
     
     // Lua Scripting System  
