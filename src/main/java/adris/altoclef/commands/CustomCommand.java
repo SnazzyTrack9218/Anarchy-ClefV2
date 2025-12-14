@@ -18,7 +18,7 @@ public class CustomCommand extends Command {
 
 
     public CustomCommand() throws CommandException {
-        super(_ctc.prefix, "does a custom action", new Arg(String.class, "task name"));
+        super(_ctc.prefix, "does a custom action", new Arg<>(String.class, "task name"));
     }
 
     public static CustomTaskConfig getConfig() {
@@ -27,8 +27,6 @@ public class CustomCommand extends Command {
 
     @Override
     protected void call(AltoClef mod, ArgParser parser) throws CommandException {
-        CustomTaskConfig dupliate = _ctc;
-
         String customCommand = parser.get(String.class);
 
         StringBuilder commandToExecute = new StringBuilder();

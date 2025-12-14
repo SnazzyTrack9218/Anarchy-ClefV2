@@ -97,6 +97,7 @@ public class AltoClef implements ModInitializer {
     private Butler _butler;
 
     // Autoplay
+    private boolean _autoPlayEnabled = true;
     private boolean _autoPlayEnabled;
     private AutoPlayTask _autoPlayTask;
     
