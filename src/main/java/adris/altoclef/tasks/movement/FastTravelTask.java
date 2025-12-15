@@ -135,7 +135,8 @@ public class FastTravelTask extends Task {
                 }
 
                 if (WorldHelper.inRangeXZ(mod.getPlayer(), netherTarget, IN_NETHER_CLOSE_ENOUGH_THRESHOLD) &&
-                        mod.getClientBaritone().getPathingBehavior().isSafeToCancel()) {
+                        mod.getClientPathingBehavior() != null
+                        && mod.getClientPathingBehavior().isSafeToCancel()) {
                     // If we're precisely at our target XZ or if we've tried long enough
                     if ((mod.getPlayer().getBlockX() == netherTarget.getX() && mod.getPlayer().getBlockZ() == netherTarget.getZ()) || _attemptToMoveToIdealNetherCoordinateTimeout.elapsed()) {
                         return _goToOverworldTask;

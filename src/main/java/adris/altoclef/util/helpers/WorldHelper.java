@@ -227,7 +227,7 @@ public interface WorldHelper {
 
     static boolean dangerousToBreakIfRightAbove(AltoClef mod, BlockPos toBreak) {
         // There might be mumbo jumbo next to it, we fall and we get killed by lava or something.
-        if (MovementHelper.avoidBreaking(mod.getClientBaritone().bsi, toBreak.getX(), toBreak.getY(), toBreak.getZ(), mod.getWorld().getBlockState(toBreak))) {
+        if (mod.getBaritoneBlockStateInterface() != null && MovementHelper.avoidBreaking(mod.getBaritoneBlockStateInterface(), toBreak.getX(), toBreak.getY(), toBreak.getZ(), mod.getWorld().getBlockState(toBreak))) {
             return true;
         }
         // Fall down

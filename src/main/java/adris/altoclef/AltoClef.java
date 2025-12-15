@@ -28,10 +28,12 @@ import adris.altoclef.ui.CommandStatusOverlay;
 import adris.altoclef.ui.MessagePriority;
 import adris.altoclef.ui.MessageSender;
 import adris.altoclef.util.helpers.InputHelper;
-import baritone.Baritone;
 import baritone.altoclef.AltoClefSettings;
 import baritone.api.BaritoneAPI;
+import baritone.api.IBaritone;
 import baritone.api.Settings;
+import baritone.behavior.PathingBehavior;
+import baritone.utils.BlockStateInterface;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -99,6 +101,9 @@ public class AltoClef implements ModInitializer {
     // Autoplay
     private boolean _autoPlayEnabled = true;
     private AutoPlayTask _autoPlayTask;
+
+    // Baritone compatibility guard
+    private boolean _baritoneIncompatibleLogged = false;
     
     // Lua Scripting System  
     private volatile LuaScriptEngine _scriptEngine;
@@ -558,18 +563,62 @@ public class AltoClef implements ModInitializer {
     /**
      * Baritone access (could just be static honestly)
      */
-    public Baritone getClientBaritone() {
-        if (getPlayer() == null) {
-            return (Baritone) BaritoneAPI.getProvider().getPrimaryBaritone();
+    public IBaritone getClientBaritone() {
+        Object baritoneInstance = null;
+        try {
+            if (getPlayer() == null) {
+                baritoneInstance = BaritoneAPI.getProvider().getPrimaryBaritone();
+            } else {
+                baritoneInstance = BaritoneAPI.getProvider().getBaritoneForPlayer(getPlayer());
+            }
+
+            if (baritoneInstance instanceof IBaritone) {
+                return (IBaritone) baritoneInstance;
+            }
+
+            logBaritoneIncompatibility(baritoneInstance);
+        } catch (ClassCastException e) {
+            logBaritoneIncompatibility(e);
         }
-        return (Baritone) BaritoneAPI.getProvider().getBaritoneForPlayer(getPlayer());
+
+        return null;
+    }
+
+    public PathingBehavior getClientPathingBehavior() {
+        IBaritone baritone = getClientBaritone();
+        if (baritone == null) return null;
+        if (baritone.getPathingBehavior() instanceof PathingBehavior behavior) {
+            return behavior;
+        }
+
+        logBaritoneIncompatibility(baritone.getPathingBehavior());
+        return null;
+    }
+
+    public BlockStateInterface getBaritoneBlockStateInterface() {
+        IBaritone baritone = getClientBaritone();
+        if (baritone instanceof baritone.Baritone concrete) {
+            return concrete.bsi;
+        }
+        return null;
+    }
+
+    private void logBaritoneIncompatibility(Object culprit) {
+        if (_baritoneIncompatibleLogged) return;
+        _baritoneIncompatibleLogged = true;
+
+        String message = "Baritone instance incompatible: " + culprit;
+        System.out.println("[AnarchyClef]: WARNING: " + message);
+        if (_messageSender != null) {
+            _messageSender.enqueueChat(message, MessagePriority.TIMELY);
+        }
     }
 
     /**
      * Baritone settings access (could just be static honestly)
      */
     public Settings getClientBaritoneSettings() {
-        return Baritone.settings();
+        return BaritoneAPI.getSettings();
     }
 
     /**
