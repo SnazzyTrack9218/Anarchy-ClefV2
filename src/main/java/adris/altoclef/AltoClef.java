@@ -5,6 +5,7 @@ import adris.altoclef.altomenu.command.HUDSettings;
 import adris.altoclef.altomenu.config.ConfigManager;
 import adris.altoclef.butler.Butler;
 import adris.altoclef.chains.*;
+import adris.altoclef.tasks.Anarchy.AutoPlayTask;
 import adris.altoclef.altomenu.*;
 import adris.altoclef.altomenu.UI.screens.clickgui.ClickGUI;
 import adris.altoclef.altomenu.managers.ModuleManager;
@@ -27,10 +28,12 @@ import adris.altoclef.ui.CommandStatusOverlay;
 import adris.altoclef.ui.MessagePriority;
 import adris.altoclef.ui.MessageSender;
 import adris.altoclef.util.helpers.InputHelper;
-import baritone.Baritone;
 import baritone.altoclef.AltoClefSettings;
 import baritone.api.BaritoneAPI;
+import baritone.api.IBaritone;
 import baritone.api.Settings;
+import baritone.api.behavior.IPathingBehavior;
+import baritone.utils.BlockStateInterface;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -94,6 +97,13 @@ public class AltoClef implements ModInitializer {
     private SlotHandler _slotHandler;
     // Butler
     private Butler _butler;
+
+    // Autoplay
+    private boolean _autoPlayEnabled = true;
+    private AutoPlayTask _autoPlayTask;
+
+    // Baritone compatibility guard
+    private boolean _baritoneIncompatibleLogged = false;
     
     // Lua Scripting System  
     private volatile LuaScriptEngine _scriptEngine;
@@ -381,6 +391,8 @@ public class AltoClef implements ModInitializer {
 
         runEnqueuedPostInits();
 
+        ensureAutoPlayRunning();
+
         _inputControls.onTickPre();
 
         // Cancel shortcut
@@ -415,6 +427,21 @@ public class AltoClef implements ModInitializer {
         }
 
         _inputControls.onTickPost();
+    }
+
+    private void ensureAutoPlayRunning() {
+        if (!_autoPlayEnabled || !inGame()) return;
+
+        if (_autoPlayTask == null) {
+            _autoPlayTask = new AutoPlayTask();
+        }
+
+        Task current = _userTaskChain.getCurrentTask();
+        if (_userTaskChain.isActive() && current instanceof AutoPlayTask) return;
+
+        if (!_userTaskChain.isActive()) {
+            runUserTask(_autoPlayTask);
+        }
     }
 
     /// GETTERS AND SETTERS
@@ -536,18 +563,79 @@ public class AltoClef implements ModInitializer {
     /**
      * Baritone access (could just be static honestly)
      */
-    public Baritone getClientBaritone() {
-        if (getPlayer() == null) {
-            return (Baritone) BaritoneAPI.getProvider().getPrimaryBaritone();
+    public IBaritone getClientBaritone() {
+        Object baritoneInstance = null;
+        try {
+            if (getPlayer() == null) {
+                baritoneInstance = BaritoneAPI.getProvider().getPrimaryBaritone();
+            } else {
+                baritoneInstance = BaritoneAPI.getProvider().getBaritoneForPlayer(getPlayer());
+            }
+
+            if (baritoneInstance instanceof IBaritone) {
+                return (IBaritone) baritoneInstance;
+            }
+
+            logBaritoneIncompatibility(baritoneInstance);
+        } catch (ClassCastException e) {
+            logBaritoneIncompatibility(e);
         }
-        return (Baritone) BaritoneAPI.getProvider().getBaritoneForPlayer(getPlayer());
+
+        return null;
+    }
+
+    public IPathingBehavior getClientPathingBehavior() {
+        IBaritone baritone = getClientBaritone();
+        if (baritone == null) return null;
+        return baritone.getPathingBehavior();
+    }
+
+    public boolean isPathingSafeToCancel() {
+        IPathingBehavior behavior = getClientPathingBehavior();
+        if (behavior == null) return false;
+        try {
+            Object result = behavior.getClass().getMethod("isSafeToCancel").invoke(behavior);
+            return result instanceof Boolean b && b;
+        } catch (Exception e) {
+            logBaritoneIncompatibility(e);
+            return false;
+        }
+    }
+
+    public void requestPathPause() {
+        IPathingBehavior behavior = getClientPathingBehavior();
+        if (behavior == null) return;
+        try {
+            behavior.getClass().getMethod("requestPause").invoke(behavior);
+        } catch (Exception e) {
+            logBaritoneIncompatibility(e);
+        }
+    }
+
+    public BlockStateInterface getBaritoneBlockStateInterface() {
+        IBaritone baritone = getClientBaritone();
+        if (baritone instanceof baritone.Baritone concrete) {
+            return concrete.bsi;
+        }
+        return null;
+    }
+
+    private void logBaritoneIncompatibility(Object culprit) {
+        if (_baritoneIncompatibleLogged) return;
+        _baritoneIncompatibleLogged = true;
+
+        String message = "Baritone instance incompatible: " + culprit;
+        System.out.println("[AnarchyClef]: WARNING: " + message);
+        if (_messageSender != null) {
+            _messageSender.enqueueChat(message, MessagePriority.TIMELY);
+        }
     }
 
     /**
      * Baritone settings access (could just be static honestly)
      */
     public Settings getClientBaritoneSettings() {
-        return Baritone.settings();
+        return BaritoneAPI.getSettings();
     }
 
     /**
@@ -653,6 +741,30 @@ public class AltoClef implements ModInitializer {
      */
     public void runUserTask(Task task, Runnable onFinish) {
         _userTaskChain.runTask(this, task, onFinish);
+    }
+
+    public void enableAutoPlay() {
+        _autoPlayEnabled = true;
+        ensureAutoPlayRunning();
+    }
+
+    public void disableAutoPlay() {
+        _autoPlayEnabled = false;
+        if (_userTaskChain.getCurrentTask() instanceof AutoPlayTask) {
+            _userTaskChain.cancel(this);
+        }
+    }
+
+    public void toggleAutoPlay() {
+        if (_autoPlayEnabled) {
+            disableAutoPlay();
+        } else {
+            enableAutoPlay();
+        }
+    }
+
+    public boolean isAutoPlayEnabled() {
+        return _autoPlayEnabled;
     }
 
     /**

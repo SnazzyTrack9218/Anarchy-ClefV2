@@ -160,7 +160,7 @@ public class CollectBucketLiquidTask extends ResourceTask {
 
                 // We can reach the block.
                 if (LookHelper.getReach(blockPos).isPresent() &&
-                        mod.getClientBaritone().getPathingBehavior().isSafeToCancel()) {
+                        mod.isPathingSafeToCancel()) {
                     return new InteractWithBlockTask(new ItemTarget(Items.BUCKET, 1), blockPos, _toCollect != Blocks.LAVA, new Vec3i(0, 1, 0));
                 }
                 // Get close enough.
