@@ -113,7 +113,8 @@ public abstract class AbstractDoToEntityTask extends Task implements ITaskRequir
                     result.getType() == HitResult.Type.ENTITY && !mod.getFoodChain().needsToEat() &&
                     !mod.getMLGBucketChain().isFallingOhNo(mod) && mod.getMLGBucketChain().doneMLG() &&
                     !mod.getMLGBucketChain().isChorusFruiting() &&
-                    mod.getClientBaritone().getPathingBehavior().isSafeToCancel() &&
+                    mod.getClientPathingBehavior() != null &&
+                    mod.getClientPathingBehavior().isSafeToCancel() &&
                     mod.getPlayer().isOnGround()) {
                 _progress.reset();
                 return onEntityInteract(mod, entity);
@@ -128,7 +129,7 @@ public abstract class AbstractDoToEntityTask extends Task implements ITaskRequir
                 return new GetToEntityTask(entity, maintainDistance);
             }
         }
-        if (!mod.getClientBaritone().getPathingBehavior().isSafeToCancel()) {
+        if (mod.getClientPathingBehavior() == null || !mod.getClientPathingBehavior().isSafeToCancel()) {
             return null;
         }
         return new TimeoutWanderTask();

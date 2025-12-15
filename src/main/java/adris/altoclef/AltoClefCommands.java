@@ -67,6 +67,8 @@ public class AltoClefCommands {
                 new ScriptCommand(),
                 new LuaDebugCommand(),
                 new HungerCommand()
+                , new HuntCommand()
+                , new AutoPlayCommand()
                 //new TestMoveInventoryCommand(),
                 //    new TestSwapInventoryCommand()
         );
