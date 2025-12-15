@@ -75,8 +75,7 @@ public class MobDefenseChain extends SingleTaskChain {
         _shielding = true;
         mod.getInputControls().hold(Input.SNEAK);
         mod.getInputControls().hold(Input.CLICK_RIGHT);
-        PathingBehavior pathingBehavior = mod.getClientPathingBehavior();
-        if (pathingBehavior != null) pathingBehavior.requestPause();
+        mod.requestPathPause();
         mod.getExtraBaritoneSettings().setInteractionPaused(true);
         if (!mod.getPlayer().isBlocking()) {
             ItemStack handItem = StorageHelper.getItemStackInSlot(PlayerSlot.getEquipSlot());
@@ -190,8 +189,7 @@ public class MobDefenseChain extends SingleTaskChain {
                     mod.getItemStorage().hasItemInOffhand(Items.SHIELD)) &&
                     !mod.getEntityTracker().entityFound(PotionEntity.class) && _runAwayTask == null
                     && !mod.getPlayer().getItemCooldownManager().isCoolingDown(offhandItem)
-                    && mod.getClientPathingBehavior() != null
-                    && mod.getClientPathingBehavior().isSafeToCancel()) {
+                    && mod.isPathingSafeToCancel()) {
                 _doingFunkyStuff = true;
                 LookHelper.lookAt(mod, blowingUp.getEyePos());
                 ItemStack shieldSlot = StorageHelper.getItemStackInSlot(PlayerSlot.OFFHAND_SLOT);
@@ -217,8 +215,7 @@ public class MobDefenseChain extends SingleTaskChain {
                 (mod.getItemStorage().hasItem(Items.SHIELD) || mod.getItemStorage().hasItemInOffhand(Items.SHIELD)) &&
                 !mod.getEntityTracker().entityFound(PotionEntity.class) && _runAwayTask == null
                 && !mod.getPlayer().getItemCooldownManager().isCoolingDown(offhandItem)
-                && mod.getClientPathingBehavior() != null
-                && mod.getClientPathingBehavior().isSafeToCancel()) {
+                && mod.isPathingSafeToCancel()) {
             ItemStack shieldSlot = StorageHelper.getItemStackInSlot(PlayerSlot.OFFHAND_SLOT);
             if (shieldSlot.getItem() != Items.SHIELD) {
                 mod.getSlotHandler().forceEquipItemToOffhand(Items.SHIELD);
@@ -422,8 +419,7 @@ public class MobDefenseChain extends SingleTaskChain {
         if (reach.isPresent()) {
             IBaritone b = mod.getClientBaritone();
             if (LookHelper.isLookingAt(mod, pos)) {
-                PathingBehavior behavior = mod.getClientPathingBehavior();
-                if (behavior != null) behavior.requestPause();
+                mod.requestPathPause();
                 b.getInputOverrideHandler().setInputForceState(Input.CLICK_LEFT, true);
                 return;
             }
@@ -507,8 +503,8 @@ public class MobDefenseChain extends SingleTaskChain {
                             Optional<Entity> ghast = mod.getEntityTracker().getClosestEntity(GhastEntity.class);
                             PathingBehavior behavior = mod.getClientPathingBehavior();
                             if (ghastBall.isPresent() && ghast.isPresent() && _runAwayTask == null
-                                    && behavior != null && behavior.isSafeToCancel()) {
-                                behavior.requestPause();
+                                    && mod.isPathingSafeToCancel()) {
+                                mod.requestPathPause();
                                 LookHelper.lookAt(mod, ghast.get().getEyePos());
                             }
                             return false;
@@ -539,9 +535,8 @@ public class MobDefenseChain extends SingleTaskChain {
                         double horizontalDistanceSq = delta.x * delta.x + delta.z * delta.z;
                         double verticalDistance = abs(delta.y);
                         if (horizontalDistanceSq < ARROW_KEEP_DISTANCE_HORIZONTAL * ARROW_KEEP_DISTANCE_HORIZONTAL && verticalDistance < ARROW_KEEP_DISTANCE_VERTICAL) {
-                            PathingBehavior behavior = mod.getClientPathingBehavior();
-                            if (_runAwayTask == null && behavior != null && behavior.isSafeToCancel()) {
-                                behavior.requestPause();
+                            if (_runAwayTask == null && mod.isPathingSafeToCancel()) {
+                                mod.requestPathPause();
                                 LookHelper.lookAt(mod, projectile.position);
                             }
                             return true;

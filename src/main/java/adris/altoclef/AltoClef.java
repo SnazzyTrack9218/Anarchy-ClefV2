@@ -32,7 +32,7 @@ import baritone.altoclef.AltoClefSettings;
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import baritone.api.Settings;
-import baritone.behavior.PathingBehavior;
+import baritone.api.behavior.IPathingBehavior;
 import baritone.utils.BlockStateInterface;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -584,15 +584,32 @@ public class AltoClef implements ModInitializer {
         return null;
     }
 
-    public PathingBehavior getClientPathingBehavior() {
+    public IPathingBehavior getClientPathingBehavior() {
         IBaritone baritone = getClientBaritone();
         if (baritone == null) return null;
-        if (baritone.getPathingBehavior() instanceof PathingBehavior behavior) {
-            return behavior;
-        }
+        return baritone.getPathingBehavior();
+    }
 
-        logBaritoneIncompatibility(baritone.getPathingBehavior());
-        return null;
+    public boolean isPathingSafeToCancel() {
+        IPathingBehavior behavior = getClientPathingBehavior();
+        if (behavior == null) return false;
+        try {
+            Object result = behavior.getClass().getMethod("isSafeToCancel").invoke(behavior);
+            return result instanceof Boolean b && b;
+        } catch (Exception e) {
+            logBaritoneIncompatibility(e);
+            return false;
+        }
+    }
+
+    public void requestPathPause() {
+        IPathingBehavior behavior = getClientPathingBehavior();
+        if (behavior == null) return;
+        try {
+            behavior.getClass().getMethod("requestPause").invoke(behavior);
+        } catch (Exception e) {
+            logBaritoneIncompatibility(e);
+        }
     }
 
     public BlockStateInterface getBaritoneBlockStateInterface() {

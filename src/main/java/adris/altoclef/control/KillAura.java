@@ -86,8 +86,7 @@ public class KillAura {
                     entities.get().getClass() != WitherEntity.class
                     && (mod.getItemStorage().hasItem(Items.SHIELD) || mod.getItemStorage().hasItemInOffhand(Items.SHIELD))
                     && !mod.getPlayer().getItemCooldownManager().isCoolingDown(offhandItem)
-                    && mod.getClientPathingBehavior() != null
-                    && mod.getClientPathingBehavior().isSafeToCancel()) {
+                    && mod.isPathingSafeToCancel()) {
                 LookHelper.lookAt(mod, entities.get().getEyePos());
                 ItemStack shieldSlot = StorageHelper.getItemStackInSlot(PlayerSlot.OFFHAND_SLOT);
                 if (shieldSlot.getItem() != Items.SHIELD) {
@@ -204,8 +203,7 @@ public class KillAura {
         _shielding = true;
         mod.getInputControls().hold(Input.SNEAK);
         mod.getInputControls().hold(Input.CLICK_RIGHT);
-        PathingBehavior behavior = mod.getClientPathingBehavior();
-        if (behavior != null) behavior.requestPause();
+        mod.requestPathPause();
         mod.getExtraBaritoneSettings().setInteractionPaused(true);
         if (!mod.getPlayer().isBlocking()) {
             ItemStack handItem = StorageHelper.getItemStackInSlot(PlayerSlot.getEquipSlot());
