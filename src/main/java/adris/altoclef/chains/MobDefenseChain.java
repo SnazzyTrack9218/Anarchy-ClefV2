@@ -8,6 +8,7 @@ import adris.altoclef.tasks.movement.CustomBaritoneGoalTask;
 import adris.altoclef.tasks.movement.DodgeProjectilesTask;
 import adris.altoclef.tasks.movement.RunAwayFromCreepersTask;
 import adris.altoclef.tasks.movement.RunAwayFromHostilesTask;
+import baritone.behavior.PathingBehavior;
 import adris.altoclef.tasks.speedrun.DragonBreathTracker;
 import adris.altoclef.tasksystem.TaskRunner;
 import adris.altoclef.util.baritone.CachedProjectile;
@@ -500,6 +501,7 @@ public class MobDefenseChain extends SingleTaskChain {
                         if (isGhastBall) {
                             Optional<Entity> ghastBall = mod.getEntityTracker().getClosestEntity(FireballEntity.class);
                             Optional<Entity> ghast = mod.getEntityTracker().getClosestEntity(GhastEntity.class);
+                            PathingBehavior behavior = mod.getClientPathingBehavior();
                             if (ghastBall.isPresent() && ghast.isPresent() && _runAwayTask == null
                                     && mod.isPathingSafeToCancel()) {
                                 mod.requestPathPause();
